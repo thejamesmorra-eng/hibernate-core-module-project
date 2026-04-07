@@ -1,5 +1,6 @@
 package sorokin.java.course.user;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "login")
+    @Column(name = "login", unique = true)
     private String login;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
@@ -24,6 +25,7 @@ public class User {
 
     public User(String login) {
         this.login = login;
+        this.accountList = new ArrayList<>();
     }
 
     public Integer getId() {

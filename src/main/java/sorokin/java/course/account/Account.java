@@ -11,22 +11,27 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "money-amount")
+    @Column(name = "money_amount")
     private int moneyAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user-id")
+    @JoinColumn(name = "user_id")
     private User user;
 
     public Account() {
     }
 
-    public Account(int moneyAmount) {
+    public Account(User user, int moneyAmount) {
+        this.user = user;
         this.moneyAmount = moneyAmount;
     }
 
     public int getId() {
         return id;
+    }
+
+    public Integer getUserId() {
+        return user.getId();
     }
 
     public int getMoneyAmount() {

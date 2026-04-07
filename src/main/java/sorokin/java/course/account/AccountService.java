@@ -1,7 +1,9 @@
 package sorokin.java.course.account;
 
+import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Component;
 import sorokin.java.course.account.Account;
+import sorokin.java.course.helper.TransactionHelper;
 import sorokin.java.course.user.User;
 
 import java.util.HashMap;
@@ -15,21 +17,28 @@ public class AccountService {
     private int idCounter;
     private final Map<Integer, Account> accountMap;
     private final AccountProperties accountProperties;
+    private final TransactionHelper transactionHelper;
+    private final SessionFactory sessionFactory;
 
-    public AccountService(AccountProperties accountProperties) {
+    public AccountService(AccountProperties accountProperties, TransactionHelper transactionHelper, SessionFactory sessionFactory) {
         this.idCounter = 0;
         this.accountMap = new HashMap<>();
         this.accountProperties = accountProperties;
+        this.transactionHelper = transactionHelper;
+        this.sessionFactory = sessionFactory;
     }
 
     public Account createAccount(User user) {
         if (user == null) {
             throw new IllegalArgumentException("user must not be null");
         }
-        idCounter++;
-        Account newAccount = new Account(idCounter, user.getId(), accountProperties.getDefaultAmount());
-        accountMap.put(idCounter, newAccount);
-        return newAccount;
+
+        return transactionHelper.executeInTransactionOrJoin(() -> {
+            Account newAccount = new Account(user, accountProperties.getDefaultAmount());
+            sessionFactory.getCurrentSession().persist(newAccount);
+            accountMap.put(idCounter, newAccount);
+            return newAccount;
+        });
     }
 
     public Optional<Account> findAccountById(Integer id) {
