@@ -6,8 +6,6 @@ import org.hibernate.Transaction;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.springframework.stereotype.Component;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
@@ -45,38 +43,63 @@ public class TransactionHelper {
         }
     }
 
-    public void executeInTransaction(Consumer<Session> action) {
-        Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
-            transaction = session.getTransaction();
-            transaction.begin();
+    public void executeInTransactionOrJoin(Runnable action) {
+        Session session = sessionFactory.getCurrentSession();
+        Transaction tx = session.getTransaction();
+        boolean owner = tx.getStatus() == TransactionStatus.NOT_ACTIVE;
 
-            action.accept(session);
-
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
+        if (owner) {
+            tx = session.beginTransaction();
+        }
+        try {
+            action.run();
+            if (owner) {
+                tx.commit();
+            }
+        } catch (RuntimeException e) {
+            if (owner) {
+                tx.rollback();
             }
             throw e;
+        } finally {
+            if (owner) {
+                session.close();
+            }
         }
     }
 
-    public <T> T executeInTransaction(Function<Session, T> action) {
-        Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
-            transaction = session.getTransaction();
-            transaction.begin();
-
-            var result = action.apply(session);
-
-            transaction.commit();
-            return result;
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            throw e;
-        }
-    }
+//    public void executeInTransaction(Consumer<Session> action) {
+//        Transaction transaction = null;
+//        try (Session session = sessionFactory.openSession()) {
+//            transaction = session.getTransaction();
+//            transaction.begin();
+//
+//            action.accept(session);
+//
+//            transaction.commit();
+//        } catch (Exception e) {
+//            if (transaction != null) {
+//                transaction.rollback();
+//            }
+//            throw e;
+//        }
+//    }
+//
+//    public <T> T executeInTransaction(Function<Session, T> action) {
+//        Transaction transaction = null;
+//        try (Session session = sessionFactory.openSession()) {
+//            transaction = session.getTransaction();
+//            transaction.begin();
+//
+//            var result = action.apply(session);
+//
+//            transaction.commit();
+//            return result;
+//        } catch (Exception e) {
+//            if (transaction != null) {
+//                transaction.rollback();
+//            }
+//            throw e;
+//        }
+//    }
 }
