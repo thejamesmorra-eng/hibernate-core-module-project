@@ -1,11 +1,12 @@
 package sorokin.java.course;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import sorokin.java.course.config.ApplicationConfiguration;
 import sorokin.java.course.console.OperationsConsoleListener;
 
 public class Main {
     public static void main(String[] args) {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("sorokin.java.course")) {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ApplicationConfiguration.class)) {
             OperationsConsoleListener consoleListener = context.getBean(OperationsConsoleListener.class);
             consoleListener.runBank();
         }
