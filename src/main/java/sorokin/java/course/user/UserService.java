@@ -7,20 +7,29 @@ import sorokin.java.course.account.AccountService;
 import sorokin.java.course.helper.TransactionHelper;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class UserService {
 
-    private final Set<String> takenLogins;
     private final AccountService accountService;
     private final TransactionHelper transactionHelper;
     private final SessionFactory sessionFactory;
+    private final Set<String> takenLogins;
 
     public UserService(AccountService accountService, TransactionHelper transactionHelper, SessionFactory sessionFactory) {
-        this.takenLogins = new HashSet<>();
         this.accountService = accountService;
         this.transactionHelper = transactionHelper;
         this.sessionFactory = sessionFactory;
+        this.takenLogins = getAllLogins();
+    }
+
+    private Set<String> getAllLogins() {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("SELECT u.login FROM User u", String.class)
+                    .getResultStream()
+                    .collect(Collectors.toCollection(HashSet::new));
+        }
     }
 
     public User createUser(String login) {

@@ -1,6 +1,8 @@
 package sorokin.java.course.config;
 
 import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.service.ServiceRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,14 +51,18 @@ public class HibernateConfiguration {
                 .addPackage("sorokin.java.course")
                 .setProperty("hibernate.connection.driver_class", driverClass)
                 .setProperty("hibernate.connection.url", url)
-                .setProperty("hibernate.connection.username", "postgres")
-                .setProperty("hibernate.connection.password", "root")
+                .setProperty("hibernate.connection.username", username)
+                .setProperty("hibernate.connection.password", password)
                 .setProperty("hibernate.dialect", dialect)
                 .setProperty("hibernate.hbm2ddl.auto", hbm2ddlAuto)
                 .setProperty("hibernate.current_session_context_class", currentSessionContextClass)
                 .setProperty("hibernate.show_sql", showSql)
-                .setProperty("hibernate.format_sql=true", formatSql);
+                .setProperty("hibernate.format_sql", formatSql);
 
-        return configuration.buildSessionFactory();
+        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                .applySettings(configuration.getProperties())
+                .build();
+
+        return configuration.buildSessionFactory(serviceRegistry);
     }
 }

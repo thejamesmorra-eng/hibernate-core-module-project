@@ -37,7 +37,6 @@ public class AccountService {
                 -> sessionFactory.getCurrentSession().find(Account.class, id)));
     }
 
-    // Возможно будет работать без привязки к транзакции. Проверить.
     public List<Account> getUserAccounts(Integer userId) {
         return transactionHelper.executeInTransactionOrJoin(() -> sessionFactory.getCurrentSession()
                 .createQuery("FROM Account acc WHERE acc.user.id =: userId", Account.class)
@@ -50,6 +49,7 @@ public class AccountService {
         transactionHelper.executeInTransactionOrJoin(() -> {
             Account account = findAccountById(fromAccountId)
                     .orElseThrow(() -> new IllegalArgumentException("No such account: id=%s".formatted(fromAccountId)));
+
             if (amount > account.getMoneyAmount()) {
                 throw new IllegalArgumentException(
                         "insufficient funds on account id=%s, moneyAmount=%s, attempted withdraw=%s"
@@ -66,6 +66,7 @@ public class AccountService {
         transactionHelper.executeInTransactionOrJoin(() -> {
             Account account = findAccountById(toAccountId)
                     .orElseThrow(() -> new IllegalArgumentException("No such account: id=%s".formatted(toAccountId)));
+
             account.setMoneyAmount(account.getMoneyAmount() + amount);
         });
     }
@@ -75,6 +76,7 @@ public class AccountService {
         return transactionHelper.executeInTransactionOrJoin(() -> {
             Account accountToClose = findAccountById(accountId)
                     .orElseThrow(() -> new IllegalArgumentException("No such account: id=%s".formatted(accountId)));
+
             var userId = accountToClose.getUserId();
             var userAccounts = getUserAccounts(userId);
             if (userAccounts.size() == 1) {

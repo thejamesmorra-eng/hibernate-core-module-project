@@ -14,7 +14,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "login", unique = true)
+    @Column(name = "login")
     private String login;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
@@ -32,16 +32,8 @@ public class User {
         return id;
     }
 
-    public String getLogin() {
-        return login;
-    }
-
     public List<Account> getAccountList() {
         return accountList;
-    }
-
-    public void setAccountList(List<Account> accountList) {
-        this.accountList = accountList;
     }
 
     @Override
